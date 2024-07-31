@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>COM Port Communication</title>
+    <style>
+        #response-id {
+            width: 80%;
+            min-height: 100px;
+            resize: vertical;
+        }
+    </style>
+</head>
+<body>
+    <h1>COM Port Communication</h1>
+    <label for="com-port">COM Port:</label>
+    <input type="text" id="com-port" value="COM10">
+    <label for="b-rate">Baud Rate:</label>
+    <input type="text" id="b-rate" value="115200"><br><br>
+    <label for="polarity">Polarity:</label>
+    <input type="text" id="polarity" value="0">
+    <button onclick="sendCommand('polarity')">Send Polarity</button>
+    
+
+    <label for="brightness">Brightness:</label>
+    <input type="text" id="brightness" value="0">
+    <button onclick="sendCommand('brightness')">Send Brightness</button>
+    
+
+    <label for="contrast">Contrast:</label>
+    <input type="text" id="contrast" value="0">
+    <button onclick="sendCommand('contrast')">Send Contrast</button><br><br>
+    
+
+    <br><br>
+    
+    <br><br>
+
+    <label for="com_status">Communication Status:</label><br>
+    <textarea id="com_status-id" readonly></textarea><br><br>
+    <label for="message">Communication Message:</label><br>
+    <textarea id="message-id" readonly></textarea><br><br>
+    <label for="response">Response:</label><br>
+    <textarea id="response-id" readonly></textarea><br><br>
+    <div id="response"></div>
+
+    <script>
+        async function sendCommand(buttonType) {
+            const comPort = document.getElementById('com-port').value;
+            const baudRate = document.getElementById('b-rate').value;
+            const value = document.getElementById(buttonType).value;
+
+            try {
+                const response = await fetch('http://localhost:8000/mouseclick_polarity', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        com_port: comPort,
+                        baud_rate: parseInt(baudRate),
+                        value: parseInt(value),
+                        button_type: buttonType
+                    })
+                });
+
+                if (!response.ok) {
+                    if(response.status == 500){
+                        throw new Error(`HTTP error! status: ${response.status} \nCheck UART connection and select correct COM port`);
+                    }
+                }
+
+                const result = await response.json();
+                document.getElementById('response-id').value   = JSON.stringify(result.response);
+                document.getElementById('com_status-id').value = JSON.stringify(result.status);
+                document.getElementById('message-id').value    = JSON.stringify(result.message);
+                document.getElementById('response-id').style.height = 'auto';
+                document.getElementById('response-id').style.height = (document.getElementById('response-id').scrollHeight) + 'px';
+            } catch (error) {
+                document.getElementById('response-id').value = `Error: ${error.message}`;
+                document.getElementById('response-id').style.height = 'auto';
+                document.getElementById('response-id').style.height = (document.getElementById('response-id').scrollHeight) + 'px';
+            }
+        }
+    </script>
+</body>
+</html>
+
+
+
+
+
